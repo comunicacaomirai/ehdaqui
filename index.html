@@ -1,0 +1,56 @@
+# Criando o arquivo index.html para o projeto EH DAQUI
+index_html_content = """<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guia EH DAQUI - Terminal</title>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background-color: #f4f4f9; text-align: center; padding: 20px; }
+        h1 { color: #333; }
+        button { padding: 15px 30px; font-size: 16px; background-color: #007bff; color: white; border: none; border-radius: 8px; cursor: pointer; }
+    </style>
+    <!-- OneSignal SDK -->
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+        window.OneSignalDeferred = window.OneSignalDeferred || [];
+        OneSignalDeferred.push(async function(OneSignal) {
+            await OneSignal.init({
+                appId: "SEU_APP_ID_AQUI", // Substitua pelo seu ID do OneSignal
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>Bem-vindo ao EH DAQUI</h1>
+    <p>Toque no botão abaixo para receber ofertas exclusivas do Terminal.</p>
+    <button id="btn-iniciar">Ativar Notificações</button>
+
+    <script>
+        document.getElementById('btn-iniciar').addEventListener('click', async () => {
+            // Inicializa OneSignal
+            await OneSignal.User.pushSubscription.optIn();
+            
+            // Solicita Geolocalização
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    console.log("Localização capturada:", lat, lon);
+                    
+                    // Adiciona tag de região
+                    OneSignal.User.addTag("regiao", "terminal_onibus");
+                    alert("Você agora receberá ofertas do terminal!");
+                }, (error) => {
+                    alert("Precisamos da sua localização para oferecer ofertas regionais.");
+                });
+            }
+        });
+    </script>
+</body>
+</html>
+"""
+
+# Escrevendo o arquivo para visualização/entrega
+with open('index.html', 'w', encoding='utf-8') as f:
+    f.write(index_html_content)
