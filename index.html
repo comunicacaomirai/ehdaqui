@@ -39,40 +39,35 @@
     </div>
 
     <script>
-        document.getElementById('btn-iniciar').addEventListener('click', () => {
+        document.getElementById('btn-iniciar').addEventListener('click', async () => {
             const btn = document.getElementById('btn-iniciar');
-            btn.innerText = "Conectando...";
+            btn.innerText = "Aguardando permissão...";
 
-            // Dispara o prompt do OneSignal de forma segura
             window.OneSignalDeferred = window.OneSignalDeferred || [];
             window.OneSignalDeferred.push(async function(OneSignal) {
                 try {
+                    // Força a exibição do opt-in e aguarda o usuário aceitar
                     await OneSignal.Slidedown.promptPush();
+                    
+                    // Adiciona a tag de região após a permissão
+                    await OneSignal.User.addTag("regiao", "terminal_onibus");
+
+                    // Pega a geolocalização em segundo plano
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition((position) => {
+                            console.log("GPS obtido com sucesso");
+                        });
+                    }
+
+                    // Só muda para a tela de sucesso DEPOIS que o fluxo correu bem
+                    document.getElementById('tela-inicial').classList.add('hidden');
+                    document.getElementById('tela-sucesso').classList.remove('hidden');
+
                 } catch (e) {
-                    console.log("Erro no prompt push:", e);
+                    console.log("Erro no processo:", e);
+                    btn.innerText = "Tentar Novamente";
                 }
             });
-
-            // Tenta obter a geolocalização e adiciona a tag
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((position) => {
-                    window.OneSignalDeferred.push(async function(OneSignal) {
-                        try {
-                            await OneSignal.User.addTag("regiao", "terminal_onibus");
-                        } catch (e) {
-                            console.log("Erro ao adicionar tag:", e);
-                        }
-                    });
-                }, (error) => {
-                    console.log("GPS negado ou indisponível, prosseguindo mesmo assim.");
-                }, { timeout: 7000 });
-            }
-
-            // Garante que a tela de sucesso apareça independentemente de travas do navegador
-            setTimeout(() => {
-                document.getElementById('tela-inicial').classList.add('hidden');
-                document.getElementById('tela-sucesso').classList.remove('hidden');
-            }, 1000);
         });
     </script>
 </body>
