@@ -41,31 +41,38 @@
     <script>
         document.getElementById('btn-iniciar').addEventListener('click', async () => {
             const btn = document.getElementById('btn-iniciar');
-            btn.innerText = "Aguardando permissão...";
+            btn.innerText = "Processando...";
 
             window.OneSignalDeferred = window.OneSignalDeferred || [];
             window.OneSignalDeferred.push(async function(OneSignal) {
                 try {
-                    // Força a exibição do opt-in e aguarda o usuário aceitar
-                    await OneSignal.Slidedown.promptPush();
+                    // Força a exibição da caixa de inscrição do OneSignal
+                    await OneSignal.User.PushSubscription.optIn();
                     
-                    // Adiciona a tag de região após a permissão
+                    // Adiciona a tag de região
                     await OneSignal.User.addTag("regiao", "terminal_onibus");
 
-                    // Pega a geolocalização em segundo plano
+                    // Captura o GPS opcionalmente
                     if (navigator.geolocation) {
                         navigator.geolocation.getCurrentPosition((position) => {
-                            console.log("GPS obtido com sucesso");
+                            console.log("GPS capturado com sucesso");
                         });
                     }
 
-                    // Só muda para a tela de sucesso DEPOIS que o fluxo correu bem
+                    // Muda para a tela de sucesso
                     document.getElementById('tela-inicial').classList.add('hidden');
                     document.getElementById('tela-sucesso').classList.remove('hidden');
 
                 } catch (e) {
-                    console.log("Erro no processo:", e);
-                    btn.innerText = "Tentar Novamente";
+                    console.log("Erro na subscrição:", e);
+                    // Caso o navegador bloqueie o optIn automático direto por script, 
+                    // chamamos a alternativa visual de prompt do OneSignal
+                    try {
+                        await OneSignal.ShowSlidedownPrompt();
+                    } catch(err) {
+                        alert("Por favor, permita as notificações no ícone de cadeado/configurações ao lado do endereço do site no navegador.");
+                    }
+                    btn.innerText = "Ativar Experiência";
                 }
             });
         });
