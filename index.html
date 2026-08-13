@@ -7,7 +7,6 @@
     <style>
         :root {
             --primary: #5c67f2;
-            --secondary: #ff7e5f;
             --bg: #f8f9fe;
             --text: #2d3436;
         }
@@ -76,8 +75,8 @@
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
     <script>
       window.OneSignalDeferred = window.OneSignalDeferred || [];
-      OneSignalDeferred.push(function(OneSignal) {
-        OneSignal.init({
+      OneSignalDeferred.push(async function(OneSignal) {
+        await OneSignal.init({
           appId: "8dd0349a-9dd8-4670-adcd-e53729853bd7",
         });
       });
@@ -94,35 +93,26 @@
 
     <script>
         document.getElementById('btn-iniciar').addEventListener('click', async () => {
-            const btn = document.getElementById('btn-iniciar');
-            btn.innerText = "Ativando...";
-            
             try {
-                // Força a exibição do prompt de inscrição do OneSignal
-                await OneSignal.Slidedefault?.push || OneSignal.showSlidedownPrompt();
+                // Solicita a inscrição de forma simplificada pelo OneSignal
+                window.OneSignalDeferred = window.OneSignalDeferred || [];
+                window.OneSignalDeferred.push(async function(OneSignal) {
+                    await OneSignal.Slidedown.promptPush();
+                });
                 
-                // Tenta capturar a geolocalização com tratamento de erro e timeout
+                // Tenta pegar a localização em segundo plano sem travar
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition((position) => {
-                        OneSignal.User.addTag("regiao", "terminal_onibus");
-                        btn.innerText = "Sucesso! ✅";
-                        btn.style.background = "#27ae60";
-                        alert("Tudo pronto! Você receberá ofertas exclusivas quando estiver no terminal.");
-                    }, (error) => {
-                        // Mesmo se o GPS falhar, destrava o botão para não prender o usuário
-                        btn.innerText = "Ativado (Sem GPS) ⚠️";
-                        btn.style.background = "#f39c12";
-                        alert("Notificações ativadas, mas não foi possível ler a localização exata.");
-                    }, { timeout: 10000 });
-                } else {
-                    btn.innerText = "Sucesso! ✅";
-                    btn.style.background = "#27ae60";
+                        window.OneSignalDeferred.push(async function(OneSignal) {
+                            OneSignal.User.addTag("regiao", "terminal_onibus");
+                        });
+                    });
                 }
+                
+                alert("Toque em 'Permitir' na caixa que aparece no navegador para confirmar!");
             } catch (err) {
-                console.error("Erro ao ativar:", err);
-                btn.innerText = "Tentar Novamente";
-                btn.style.background = "#e74c3c";
-                alert("Ocorreu um erro ao ativar. Verifique se o navegador bloqueou a permissão.");
+                console.error("Erro:", err);
+                alert("Erro ao conectar com o serviço de notificações.");
             }
         });
     </script>
