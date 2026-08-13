@@ -6,10 +6,12 @@
     <title>EH DAQUI - Guia do Comércio Local</title>
     <style>
         :root { --primary: #5c67f2; --text: #2d3436; }
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(135deg, #e0eafc, #cfdef3); }
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(135deg, #e0eafc, #cfdef3); margin: 0; }
         .container { background: white; padding: 2.5rem; border-radius: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; max-width: 400px; width: 90%; }
-        button { background: var(--primary); color: white; border: none; padding: 18px 30px; font-size: 1.1rem; border-radius: 50px; cursor: pointer; width: 100%; }
+        button { background: var(--primary); color: white; border: none; padding: 18px 30px; font-size: 1.1rem; border-radius: 50px; cursor: pointer; width: 100%; font-weight: bold; box-shadow: 0 4px 10px rgba(92, 103, 242, 0.3); }
+        button:active { transform: scale(0.98); }
         .hidden { display: none; }
+        p { color: #636e72; line-height: 1.5; }
     </style>
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
     <script>
@@ -28,33 +30,49 @@
         <button id="btn-iniciar">Ativar Experiência</button>
     </div>
 
-    <!-- Tela de Sucesso (escondida inicialmente) -->
+    <!-- Tela de Sucesso -->
     <div class="container hidden" id="tela-sucesso">
         <div style="font-size: 3rem; margin-bottom: 1rem;">🎉</div>
         <h1>Tudo certo!</h1>
         <p>Bem-vindo! Agora, sempre que você estiver próximo ao terminal, receberá notificações com promoções e ofertas exclusivas.</p>
-        <p style="font-size: 0.9rem; color: #b2bec3;">Pode fechar esta página.</p>
+        <p style="font-size: 0.85rem; color: #b2bec3; margin-top: 1.5rem;">Pode fechar esta página e aproveitar o terminal.</p>
     </div>
 
     <script>
-        document.getElementById('btn-iniciar').addEventListener('click', async () => {
+        document.getElementById('btn-iniciar').addEventListener('click', () => {
+            const btn = document.getElementById('btn-iniciar');
+            btn.innerText = "Conectando...";
+
+            // Dispara o prompt do OneSignal de forma segura
+            window.OneSignalDeferred = window.OneSignalDeferred || [];
             window.OneSignalDeferred.push(async function(OneSignal) {
-                // 1. Pede permissão de Notificação
-                await OneSignal.Slidedown.promptPush();
-                
-                // 2. Pede permissão de Localização
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition((position) => {
-                        OneSignal.User.addTag("regiao", "terminal_onibus");
-                        
-                        // 3. Troca a tela
-                        document.getElementById('tela-inicial').classList.add('hidden');
-                        document.getElementById('tela-sucesso').classList.remove('hidden');
-                    }, (error) => {
-                        alert("Precisamos da localização para ativar as ofertas exclusivas.");
-                    });
+                try {
+                    await OneSignal.Slidedown.promptPush();
+                } catch (e) {
+                    console.log("Erro no prompt push:", e);
                 }
             });
+
+            // Tenta obter a geolocalização e adiciona a tag
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    window.OneSignalDeferred.push(async function(OneSignal) {
+                        try {
+                            await OneSignal.User.addTag("regiao", "terminal_onibus");
+                        } catch (e) {
+                            console.log("Erro ao adicionar tag:", e);
+                        }
+                    });
+                }, (error) => {
+                    console.log("GPS negado ou indisponível, prosseguindo mesmo assim.");
+                }, { timeout: 7000 });
+            }
+
+            // Garante que a tela de sucesso apareça independentemente de travas do navegador
+            setTimeout(() => {
+                document.getElementById('tela-inicial').classList.add('hidden');
+                document.getElementById('tela-sucesso').classList.remove('hidden');
+            }, 1000);
         });
     </script>
 </body>
