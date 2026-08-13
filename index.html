@@ -5,115 +5,56 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EH DAQUI - Guia do Comércio Local</title>
     <style>
-        :root {
-            --primary: #5c67f2;
-            --bg: #f8f9fe;
-            --text: #2d3436;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background: linear-gradient(135deg, #e0eafc, #cfdef3);
-            color: var(--text);
-        }
-
-        .container {
-            background: white;
-            padding: 2.5rem;
-            border-radius: 25px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            text-align: center;
-            max-width: 400px;
-            width: 90%;
-        }
-
-        h1 {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-            color: var(--primary);
-        }
-
-        p {
-            font-size: 1.1rem;
-            color: #636e72;
-            margin-bottom: 2rem;
-            line-height: 1.5;
-        }
-
-        button {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 18px 30px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: transform 0.2s, background 0.3s;
-            width: 100%;
-            box-shadow: 0 5px 15px rgba(92, 103, 242, 0.3);
-        }
-
-        button:hover {
-            transform: scale(1.03);
-            background: #4a54e1;
-        }
-
-        .icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
+        :root { --primary: #5c67f2; --text: #2d3436; }
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(135deg, #e0eafc, #cfdef3); }
+        .container { background: white; padding: 2.5rem; border-radius: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; max-width: 400px; width: 90%; }
+        button { background: var(--primary); color: white; border: none; padding: 18px 30px; font-size: 1.1rem; border-radius: 50px; cursor: pointer; width: 100%; }
+        .hidden { display: none; }
     </style>
-    
-    <!-- OneSignal SDK -->
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
     <script>
       window.OneSignalDeferred = window.OneSignalDeferred || [];
       OneSignalDeferred.push(async function(OneSignal) {
-        await OneSignal.init({
-          appId: "8dd0349a-9dd8-4670-adcd-e53729853bd7",
-        });
+        await OneSignal.init({ appId: "8dd0349a-9dd8-4670-adcd-e53729853bd7" });
       });
     </script>
 </head>
 <body>
 
-    <div class="container">
-        <div class="icon">📍</div>
+    <div class="container" id="tela-inicial">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">📍</div>
         <h1>EH DAQUI</h1>
-        <p>Conecte-se com as melhores ofertas e serviços do seu terminal em tempo real.</p>
+        <p>Conecte-se com as melhores ofertas e serviços do seu terminal.</p>
         <button id="btn-iniciar">Ativar Experiência</button>
+    </div>
+
+    <!-- Tela de Sucesso (escondida inicialmente) -->
+    <div class="container hidden" id="tela-sucesso">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">🎉</div>
+        <h1>Tudo certo!</h1>
+        <p>Bem-vindo! Agora, sempre que você estiver próximo ao terminal, receberá notificações com promoções e ofertas exclusivas.</p>
+        <p style="font-size: 0.9rem; color: #b2bec3;">Pode fechar esta página.</p>
     </div>
 
     <script>
         document.getElementById('btn-iniciar').addEventListener('click', async () => {
-            try {
-                // Solicita a inscrição de forma simplificada pelo OneSignal
-                window.OneSignalDeferred = window.OneSignalDeferred || [];
-                window.OneSignalDeferred.push(async function(OneSignal) {
-                    await OneSignal.Slidedown.promptPush();
-                });
+            window.OneSignalDeferred.push(async function(OneSignal) {
+                // 1. Pede permissão de Notificação
+                await OneSignal.Slidedown.promptPush();
                 
-                // Tenta pegar a localização em segundo plano sem travar
+                // 2. Pede permissão de Localização
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition((position) => {
-                        window.OneSignalDeferred.push(async function(OneSignal) {
-                            OneSignal.User.addTag("regiao", "terminal_onibus");
-                        });
+                        OneSignal.User.addTag("regiao", "terminal_onibus");
+                        
+                        // 3. Troca a tela
+                        document.getElementById('tela-inicial').classList.add('hidden');
+                        document.getElementById('tela-sucesso').classList.remove('hidden');
+                    }, (error) => {
+                        alert("Precisamos da localização para ativar as ofertas exclusivas.");
                     });
                 }
-                
-                alert("Toque em 'Permitir' na caixa que aparece no navegador para confirmar!");
-            } catch (err) {
-                console.error("Erro:", err);
-                alert("Erro ao conectar com o serviço de notificações.");
-            }
+            });
         });
     </script>
 </body>
