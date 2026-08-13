@@ -8,74 +8,42 @@
         :root { --primary: #5c67f2; --text: #2d3436; }
         body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(135deg, #e0eafc, #cfdef3); margin: 0; }
         .container { background: white; padding: 2.5rem; border-radius: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; max-width: 400px; width: 90%; }
-        button { background: var(--primary); color: white; border: none; padding: 18px 30px; font-size: 1.1rem; border-radius: 50px; cursor: pointer; width: 100%; font-weight: bold; box-shadow: 0 4px 10px rgba(92, 103, 242, 0.3); }
-        button:active { transform: scale(0.98); }
-        .hidden { display: none; }
-        p { color: #636e72; line-height: 1.5; }
+        h1 { color: var(--primary); margin-bottom: 0.5rem; }
+        p { color: #636e72; line-height: 1.5; margin-bottom: 2rem; }
     </style>
+    
+    <!-- OneSignal SDK -->
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
     <script>
       window.OneSignalDeferred = window.OneSignalDeferred || [];
       OneSignalDeferred.push(async function(OneSignal) {
-        await OneSignal.init({ appId: "8dd0349a-9dd8-4670-adcd-e53729853bd7" });
+        await OneSignal.init({
+          appId: "8dd0349a-9dd8-4670-adcd-e53729853bd7",
+        });
+
+        // Adiciona a tag de região automaticamente ao carregar a sessão
+        OneSignal.User.addTag("regiao", "terminal_onibus");
       });
     </script>
 </head>
 <body>
 
-    <div class="container" id="tela-inicial">
+    <div class="container">
         <div style="font-size: 3rem; margin-bottom: 1rem;">📍</div>
         <h1>EH DAQUI</h1>
-        <p>Conecte-se com as melhores ofertas e serviços do seu terminal.</p>
-        <button id="btn-iniciar">Ativar Experiência</button>
-    </div>
-
-    <!-- Tela de Sucesso -->
-    <div class="container hidden" id="tela-sucesso">
-        <div style="font-size: 3rem; margin-bottom: 1rem;">🎉</div>
-        <h1>Tudo certo!</h1>
-        <p>Bem-vindo! Agora, sempre que você estiver próximo ao terminal, receberá notificações com promoções e ofertas exclusivas.</p>
-        <p style="font-size: 0.85rem; color: #b2bec3; margin-top: 1.5rem;">Pode fechar esta página e aproveitar o terminal.</p>
+        <p>Toque no botão abaixo ou no sino de notificações para receber as ofertas e promoções exclusivas do terminal em tempo real.</p>
+        
+        <!-- Botão nativo de subscrição oficial do OneSignal (Evita travamentos de script) -->
+        <div class="onesignal-customlink-container"></div>
     </div>
 
     <script>
-        document.getElementById('btn-iniciar').addEventListener('click', async () => {
-            const btn = document.getElementById('btn-iniciar');
-            btn.innerText = "Processando...";
-
-            window.OneSignalDeferred = window.OneSignalDeferred || [];
-            window.OneSignalDeferred.push(async function(OneSignal) {
-                try {
-                    // Força a exibição da caixa de inscrição do OneSignal
-                    await OneSignal.User.PushSubscription.optIn();
-                    
-                    // Adiciona a tag de região
-                    await OneSignal.User.addTag("regiao", "terminal_onibus");
-
-                    // Captura o GPS opcionalmente
-                    if (navigator.geolocation) {
-                        navigator.geolocation.getCurrentPosition((position) => {
-                            console.log("GPS capturado com sucesso");
-                        });
-                    }
-
-                    // Muda para a tela de sucesso
-                    document.getElementById('tela-inicial').classList.add('hidden');
-                    document.getElementById('tela-sucesso').classList.remove('hidden');
-
-                } catch (e) {
-                    console.log("Erro na subscrição:", e);
-                    // Caso o navegador bloqueie o optIn automático direto por script, 
-                    // chamamos a alternativa visual de prompt do OneSignal
-                    try {
-                        await OneSignal.ShowSlidedownPrompt();
-                    } catch(err) {
-                        alert("Por favor, permita as notificações no ícone de cadeado/configurações ao lado do endereço do site no navegador.");
-                    }
-                    btn.innerText = "Ativar Experiência";
-                }
+        // Captura geolocalização em segundo plano para registro opcional
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((position) => {
+                console.log("Localização obtida com sucesso");
             });
-        });
+        }
     </script>
 </body>
 </html>
