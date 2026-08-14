@@ -5,14 +5,51 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EH DAQUI - Guia do Comércio Local</title>
     <style>
-        :root { --primary: #5c67f2; --text: #2d3436; }
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(135deg, #e0eafc, #cfdef3); margin: 0; }
-        .container { background: white; padding: 2.5rem; border-radius: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; max-width: 400px; width: 90%; }
-        h1 { color: var(--primary); margin-bottom: 0.5rem; }
-        p { color: #636e72; line-height: 1.5; margin-bottom: 2rem; }
+        :root { 
+            --primary: #5c67f2; 
+            --text: #2d3436; 
+            --bg: #f8f9fe;
+        }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            background: linear-gradient(135deg, #e0eafc, #cfdef3); 
+            margin: 0; 
+        }
+        .container { 
+            background: white; 
+            padding: 2.5rem; 
+            border-radius: 25px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            text-align: center; 
+            max-width: 400px; 
+            width: 90%; 
+        }
+        h1 { 
+            color: var(--primary); 
+            margin-bottom: 0.5rem; 
+            font-size: 2rem;
+        }
+        p { 
+            color: #636e72; 
+            line-height: 1.5; 
+            margin-bottom: 2rem; 
+            font-size: 1.1rem;
+        }
+        .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        /* Estilização para o elemento de inscrição do OneSignal */
+        .onesignal-customlink-container {
+            margin-top: 15px;
+        }
     </style>
     
-    <!-- OneSignal SDK -->
+    <!-- OneSignal SDK com o seu novo App ID -->
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
     <script>
       window.OneSignalDeferred = window.OneSignalDeferred || [];
@@ -21,7 +58,7 @@
           appId: "8dd0349a-9dd8-4670-adcd-e53729853bd7",
         });
 
-        // Adiciona a tag de região automaticamente ao carregar a sessão
+        // Adiciona automaticamente a tag de região para segmentação das ofertas do terminal
         OneSignal.User.addTag("regiao", "terminal_onibus");
       });
     </script>
@@ -29,19 +66,21 @@
 <body>
 
     <div class="container">
-        <div style="font-size: 3rem; margin-bottom: 1rem;">📍</div>
+        <div class="icon">📍</div>
         <h1>EH DAQUI</h1>
-        <p>Toque no botão abaixo ou no sino de notificações para receber as ofertas e promoções exclusivas do terminal em tempo real.</p>
+        <p>Conecte-se com as melhores ofertas e serviços do seu terminal em tempo real.</p>
         
-        <!-- Botão nativo de subscrição oficial do OneSignal (Evita travamentos de script) -->
+        <!-- Botão/Link Oficial de Inscrição do OneSignal -->
         <div class="onesignal-customlink-container"></div>
     </div>
 
     <script>
-        // Captura geolocalização em segundo plano para registro opcional
+        // Captura opcional da geolocalização do usuário para fins de registro local
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition((position) => {
-                console.log("Localização obtida com sucesso");
+                console.log("Geolocalização obtida:", position.coords.latitude, position.coords.longitude);
+            }, (error) => {
+                console.log("Geolocalização não autorizada ou indisponível.");
             });
         }
     </script>
