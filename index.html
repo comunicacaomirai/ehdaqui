@@ -5,84 +5,68 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EH DAQUI - Guia do Comércio Local</title>
     <style>
-        :root { 
-            --primary: #5c67f2; 
-            --text: #2d3436; 
-            --bg: #f8f9fe;
-        }
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
-            background: linear-gradient(135deg, #e0eafc, #cfdef3); 
-            margin: 0; 
-        }
-        .container { 
-            background: white; 
-            padding: 2.5rem; 
-            border-radius: 25px; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
-            text-align: center; 
-            max-width: 400px; 
-            width: 90%; 
-        }
-        h1 { 
-            color: var(--primary); 
-            margin-bottom: 0.5rem; 
-            font-size: 2rem;
-        }
-        p { 
-            color: #636e72; 
-            line-height: 1.5; 
-            margin-bottom: 2rem; 
-            font-size: 1.1rem;
-        }
-        .icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-        /* Estilização para o elemento de inscrição do OneSignal */
-        .onesignal-customlink-container {
-            margin-top: 15px;
-        }
+        :root { --primary: #5c67f2; --text: #2d3436; }
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(135deg, #e0eafc, #cfdef3); margin: 0; }
+        .container { background: white; padding: 2.5rem; border-radius: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; max-width: 400px; width: 90%; }
+        button { background: var(--primary); color: white; border: none; padding: 18px 30px; font-size: 1.1rem; border-radius: 50px; cursor: pointer; width: 100%; font-weight: bold; box-shadow: 0 4px 10px rgba(92, 103, 242, 0.3); }
+        .hidden { display: none; }
+        p { color: #636e72; line-height: 1.5; }
     </style>
-    
-    <!-- OneSignal SDK com o seu novo App ID -->
-    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-    <script>
-      window.OneSignalDeferred = window.OneSignalDeferred || [];
-      OneSignalDeferred.push(async function(OneSignal) {
-        await OneSignal.init({
-          appId: "8dd0349a-9dd8-4670-adcd-e53729853bd7",
-        });
 
-        // Adiciona automaticamente a tag de região para segmentação das ofertas do terminal
-        OneSignal.User.addTag("regiao", "terminal_onibus");
-      });
-    </script>
+    <!-- SDKs do Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
 </head>
 <body>
 
-    <div class="container">
-        <div class="icon">📍</div>
+    <div class="container" id="tela-inicial">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">📍</div>
         <h1>EH DAQUI</h1>
-        <p>Conecte-se com as melhores ofertas e serviços do seu terminal em tempo real.</p>
-        
-        <!-- Botão/Link Oficial de Inscrição do OneSignal -->
-        <div class="onesignal-customlink-container"></div>
+        <p>Conecte-se com as melhores ofertas e serviços do seu terminal.</p>
+        <button id="btn-iniciar">Ativar Notificações</button>
+    </div>
+
+    <div class="container hidden" id="tela-sucesso">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">🎉</div>
+        <h1>Tudo certo!</h1>
+        <p>Notificações ativadas com sucesso. Você receberá ofertas em tempo real.</p>
     </div>
 
     <script>
-        // Captura opcional da geolocalização do usuário para fins de registro local
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition((position) => {
-                console.log("Geolocalização obtida:", position.coords.latitude, position.coords.longitude);
-            }, (error) => {
-                console.log("Geolocalização não autorizada ou indisponível.");
-            });
-        }
+        const firebaseConfig = {
+            apiKey: "AIzaSyCTwyIJApmGXLSQP-KNSR7MTgRcYRW4TBk",
+            authDomain: "ehdaqui-a25d2.firebaseapp.com",
+            projectId: "ehdaqui-a25d2",
+            storageBucket: "ehdaqui-a25d2.firebasestorage.app",
+            messagingSenderId: "823098271292",
+            appId: "1:823098271292:web:6806e14d892a2bd75ac539"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const messaging = firebase.messaging();
+
+        document.getElementById('btn-iniciar').addEventListener('click', async () => {
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    // Chave VAPID gerada no Firebase
+                    const token = await messaging.getToken({ 
+                        vapidKey: 'BOfREMxUsvBAHZCVIV-zSlQstU6NE4ng5QEHsQzXc3OJMBnkJDsdz9zuw6GWqSMLwvZvohLDwzBzyGTcWpFbXTA' 
+                    });
+                    
+                    console.log("Token do Dispositivo:", token);
+                    alert("Inscrição realizada com sucesso!");
+
+                    document.getElementById('tela-inicial').classList.add('hidden');
+                    document.getElementById('tela-sucesso').classList.remove('hidden');
+                } else {
+                    alert('Você precisa permitir as notificações para receber as ofertas.');
+                }
+            } catch (error) {
+                console.error("Erro ao gerar token:", error);
+                alert("Erro ao ativar as notificações. Verifique o console.");
+            }
+        });
     </script>
 </body>
 </html>
