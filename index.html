@@ -3,36 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EH DAQUI - Guia do Comércio Local</title>
+    <title>EH DAQUI - Notificações</title>
     <style>
-        :root { --primary: #5c67f2; --text: #2d3436; }
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(135deg, #e0eafc, #cfdef3); margin: 0; }
-        .container { background: white; padding: 2.5rem; border-radius: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; max-width: 400px; width: 90%; }
-        button { background: var(--primary); color: white; border: none; padding: 18px 30px; font-size: 1.1rem; border-radius: 50px; cursor: pointer; width: 100%; font-weight: bold; box-shadow: 0 4px 10px rgba(92, 103, 242, 0.3); }
-        .hidden { display: none; }
-        p { color: #636e72; line-height: 1.5; }
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f2f5; margin: 0; }
+        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; max-width: 380px; width: 90%; }
+        button { background: #4f46e5; color: white; border: none; padding: 14px 24px; font-size: 1rem; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 1rem; }
+        button:hover { background: #4338ca; }
+        p { color: #4b5563; font-size: 0.95rem; line-height: 1.4; }
     </style>
-
-    <!-- SDKs do Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
 </head>
 <body>
 
-    <div class="container" id="tela-inicial">
-        <div style="font-size: 3rem; margin-bottom: 1rem;">📍</div>
-        <h1>EH DAQUI</h1>
-        <p>Conecte-se com as melhores ofertas e serviços do seu terminal.</p>
-        <button id="btn-iniciar">Ativar Notificações</button>
+    <div class="card">
+        <h2>EH DAQUI</h2>
+        <p>Clique no botão abaixo para autorizar e se inscrever para receber nossas mensagens e ofertas direto no seu dispositivo.</p>
+        <button id="btn-inscrever">Ativar Notificações</button>
     </div>
 
-    <div class="container hidden" id="tela-sucesso">
-        <div style="font-size: 3rem; margin-bottom: 1rem;">🎉</div>
-        <h1>Tudo certo!</h1>
-        <p>Notificações ativadas com sucesso. Você receberá ofertas em tempo real.</p>
-    </div>
+    <!-- SDKs do Firebase (Versão Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
 
     <script>
+        // Suas credenciais oficiais do Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyCTwyIJApmGXLSQP-KNSR7MTgRcYRW4TBk",
             authDomain: "ehdaqui-a25d2.firebaseapp.com",
@@ -42,29 +35,36 @@
             appId: "1:823098271292:web:6806e14d892a2bd75ac539"
         };
 
+        // Inicializa o Firebase
         firebase.initializeApp(firebaseConfig);
         const messaging = firebase.messaging();
 
-        document.getElementById('btn-iniciar').addEventListener('click', async () => {
+        document.getElementById('btn-inscrever').addEventListener('click', async () => {
             try {
+                // 1. Pede permissão nativa ao navegador
                 const permission = await Notification.requestPermission();
+                
                 if (permission === 'granted') {
-                    // Chave VAPID gerada no Firebase
-                    const token = await messaging.getToken({ 
-                        vapidKey: 'BOfREMxUsvBAHZCVIV-zSlQstU6NE4ng5QEHsQzXc3OJMBnkJDsdz9zuw6GWqSMLwvZvohLDwzBzyGTcWpFbXTA' 
-                    });
+                    // 2. Registra o Service Worker e obtém o Token do FCM
+                    const registration = await navigator.serviceWorker.register('firebase-messaging-sw.js');
                     
-                    console.log("Token do Dispositivo:", token);
-                    alert("Inscrição realizada com sucesso!");
+                    const token = await messaging.getToken({
+                        vapidKey: 'BOfREMxUsvBAHZCVIV-zSlQstU6NE4ng5QEHsQzXc3OJMBnkJDsdz9zuw6GWqSMLwvZvohLDwzBzyGTcWpFbXTA',
+                        serviceWorkerRegistration: registration
+                    });
 
-                    document.getElementById('tela-inicial').classList.add('hidden');
-                    document.getElementById('tela-sucesso').classList.remove('hidden');
+                    if (token) {
+                        console.log("Token gerado com sucesso:", token);
+                        alert("Inscrição realizada com sucesso! Seu navegador está pronto para receber mensagens.");
+                    } else {
+                        alert("Não foi possível gerar o token de inscrição.");
+                    }
                 } else {
-                    alert('Você precisa permitir as notificações para receber as ofertas.');
+                    alert("A permissão de notificações foi negada no navegador.");
                 }
             } catch (error) {
-                console.error("Erro ao gerar token:", error);
-                alert("Erro ao ativar as notificações. Verifique o console.");
+                console.error("Erro detalhado na inscrição:", error);
+                alert("Erro ao se inscrever. Abra o console (F12) para ver os detalhes.");
             }
         });
     </script>
