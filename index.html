@@ -25,7 +25,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
 
     <script>
-        // Suas credenciais oficiais do Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyCTwyIJApmGXLSQP-KNSR7MTgRcYRW4TBk",
             authDomain: "ehdaqui-a25d2.firebaseapp.com",
@@ -35,18 +34,27 @@
             appId: "1:823098271292:web:6806e14d892a2bd75ac539"
         };
 
-        // Inicializa o Firebase
         firebase.initializeApp(firebaseConfig);
         const messaging = firebase.messaging();
 
+        // Assim que a página abre, já registramos o Service Worker em segundo plano antecipadamente
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('firebase-messaging-sw.js')
+                .then((registration) => {
+                    console.log("Service Worker registrado com sucesso:", registration.scope);
+                })
+                .catch((err) => {
+                    console.log("Falha ao registrar o Service Worker:", err);
+                });
+        }
+
         document.getElementById('btn-inscrever').addEventListener('click', async () => {
             try {
-                // 1. Pede permissão nativa ao navegador
                 const permission = await Notification.requestPermission();
                 
                 if (permission === 'granted') {
-                    // 2. Registra o Service Worker e obtém o Token do FCM
-                    const registration = await navigator.serviceWorker.register('firebase-messaging-sw.js');
+                    // Aguarda o Service Worker estar totalmente pronto e ativo
+                    const registration = await navigator.serviceWorker.ready;
                     
                     const token = await messaging.getToken({
                         vapidKey: 'BOfREMxUsvBAHZCVIV-zSlQstU6NE4ng5QEHsQzXc3OJMBnkJDsdz9zuw6GWqSMLwvZvohLDwzBzyGTcWpFbXTA',
@@ -55,7 +63,7 @@
 
                     if (token) {
                         console.log("Token gerado com sucesso:", token);
-                        alert("Inscrição realizada com sucesso! Seu navegador está pronto para receber mensagens.");
+                        alert("Inscrição realizada com sucesso! Seu dispositivo está pronto.");
                     } else {
                         alert("Não foi possível gerar o token de inscrição.");
                     }
