@@ -1,80 +1,107 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EH DAQUI - Notificações</title>
+    <title>Alertas de Ofertas Locais</title>
+    
+    <!-- Estilos mobile-first limpos e profissionais -->
     <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f2f5; margin: 0; }
-        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; max-width: 380px; width: 90%; }
-        button { background: #4f46e5; color: white; border: none; padding: 14px 24px; font-size: 1rem; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 1rem; }
-        button:hover { background: #4338ca; }
-        p { color: #4b5563; font-size: 0.95rem; line-height: 1.4; }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f6f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .card {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            font-size: 22px;
+            color: #1a1a1a;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        p {
+            font-size: 15px;
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 25px;
+        }
+        .btn-ativar {
+            background-color: #25d366;
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3);
+            transition: background 0.2s;
+        }
+        .btn-ativar:hover {
+            background-color: #1ebd59;
+        }
+        .footer {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #999;
+        }
     </style>
+
+    <!-- SDK Oficial do OneSignal com o seu App ID -->
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(async function(OneSignal) {
+        await OneSignal.init({
+          appId: "f4d7678d-f36a-4af6-bc8a-77bbbef19e8a",
+        });
+      });
+    </script>
 </head>
 <body>
 
     <div class="card">
-        <h2>EH DAQUI</h2>
-        <p>Clique no botão abaixo para autorizar e se inscrever para receber nossas mensagens e ofertas direto no seu dispositivo.</p>
-        <button id="btn-inscrever">Ativar Notificações</button>
+        <h1>🔔 Alertas de Ofertas Locais</h1>
+        <p>Receba descontos relâmpago, cupons e promoções exclusivas dos comércios da região direto na tela do seu celular.</p>
+        
+        <!-- Botão que aciona a permissão nativa de notificação do navegador -->
+        <button class="btn-ativar" onclick="ativarNotificacoes()">Quero Receber Ofertas</button>
+        
+        <div class="footer">
+            Sem spam. Cancele quando quiser.
+        </div>
     </div>
 
-    <!-- SDKs do Firebase (Versão Compat) -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
-
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyCTwyIJApmGXLSQP-KNSR7MTgRcYRW4TBk",
-            authDomain: "ehdaqui-a25d2.firebaseapp.com",
-            projectId: "ehdaqui-a25d2",
-            storageBucket: "ehdaqui-a25d2.firebasestorage.app",
-            messagingSenderId: "823098271292",
-            appId: "1:823098271292:web:6806e14d892a2bd75ac539"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        const messaging = firebase.messaging();
-
-        // Assim que a página abre, já registramos o Service Worker em segundo plano antecipadamente
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('firebase-messaging-sw.js')
-                .then((registration) => {
-                    console.log("Service Worker registrado com sucesso:", registration.scope);
-                })
-                .catch((err) => {
-                    console.log("Falha ao registrar o Service Worker:", err);
-                });
-        }
-
-        document.getElementById('btn-inscrever').addEventListener('click', async () => {
-            try {
-                const permission = await Notification.requestPermission();
-                
-                if (permission === 'granted') {
-                    // Aguarda o Service Worker estar totalmente pronto e ativo
-                    const registration = await navigator.serviceWorker.ready;
-                    
-                    const token = await messaging.getToken({
-                        vapidKey: 'BOfREMxUsvBAHZCVIV-zSlQstU6NE4ng5QEHsQzXc3OJMBnkJDsdz9zuw6GWqSMLwvZvohLDwzBzyGTcWpFbXTA',
-                        serviceWorkerRegistration: registration
-                    });
-
-                    if (token) {
-                        console.log("Token gerado com sucesso:", token);
-                        alert("Inscrição realizada com sucesso! Seu dispositivo está pronto.");
-                    } else {
-                        alert("Não foi possível gerar o token de inscrição.");
-                    }
-                } else {
-                    alert("A permissão de notificações foi negada no navegador.");
+        // Função que abre a janela de permissão do OneSignal ao clicar no botão
+        function ativarNotificacoes() {
+            window.OneSignalDeferred.push(async function(OneSignal) {
+                try {
+                    await OneSignal.Slidedown.promptPush();
+                } catch (error) {
+                    console.error("Erro ao solicitar permissão:", error);
                 }
-            } catch (error) {
-                console.error("Erro detalhado na inscrição:", error);
-                alert("Erro ao se inscrever. Abra o console (F12) para ver os detalhes.");
-            }
-        });
+            });
+        }
     </script>
+
 </body>
 </html>
