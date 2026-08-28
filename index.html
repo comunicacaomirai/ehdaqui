@@ -65,15 +65,14 @@
         }
     </style>
 
-    <!-- SDK Oficial do OneSignal com o seu App ID -->
-    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-    <script>
-      window.OneSignalDeferred = window.OneSignalDeferred || [];
-      OneSignalDeferred.push(async function(OneSignal) {
-        await OneSignal.init({
-          appId: "f4d7678d-f36a-4af6-bc8a-77bbbef19e8a",
-        });
-      });
+    <!-- PushAlert Unified Code -->
+    <script type="text/javascript">
+        (function(d, t) {
+            var g = d.createElement(t);
+            var s = d.getElementsByTagName(t)[0];
+            g.src = "https://cdn.pushalert.co/unified_4c8c14a4cd48817097f3d42f7b419b33.js";
+            s.parentNode.insertBefore(g, s);
+        }(document, "script"));
     </script>
 </head>
 <body>
@@ -82,7 +81,7 @@
         <h1>🔔 Alertas de Ofertas Locais</h1>
         <p>Receba descontos relâmpago, cupons e promoções exclusivas dos comércios da região direto na tela do seu celular.</p>
         
-        <!-- Botão que aciona a permissão nativa de notificação do navegador -->
+        <!-- Botão opcional que dispara o prompt de inscrição do PushAlert -->
         <button class="btn-ativar" onclick="ativarNotificacoes()">Quero Receber Ofertas</button>
         
         <div class="footer">
@@ -91,15 +90,13 @@
     </div>
 
     <script>
-        // Função que abre a janela de permissão do OneSignal ao clicar no botão
+        // Função para acionar a janela de permissão ao clicar no botão
         function ativarNotificacoes() {
-            window.OneSignalDeferred.push(async function(OneSignal) {
-                try {
-                    await OneSignal.Slidedown.promptPush();
-                } catch (error) {
-                    console.error("Erro ao solicitar permissão:", error);
-                }
-            });
+            if (typeof pushalert !== 'undefined') {
+                pushalert.prompt();
+            } else {
+                console.log("PushAlert ainda está carregando...");
+            }
         }
     </script>
 
